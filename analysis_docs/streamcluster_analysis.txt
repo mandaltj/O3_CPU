@@ -1,0 +1,28 @@
+1) FP Analysis
+2_2_2_2_2_2 IPC = 1.237630	system.cpu.iq.fu_full::FloatAdd = 48,981,903	rename.IQFullEvents = 20,791,165	rename.ROBFullEvents = 25,811,062
+2_2_4_4_2_2 IPC = 1.237672	system.cpu.iq.fu_full::FloatAdd = 1580			rename.IQFullEvents = 20,770,005	rename.ROBFullEvents = 25,822,919
+2_2_6_6_2_2 IPC = 1.237672	system.cpu.iq.fu_full::FloatAdd = 0				rename.IQFullEvents = 20,770,005	rename.ROBFullEvents = 25,822,940
+2_2_8_8_2_2 IPC = 1.237672	system.cpu.iq.fu_full::FloatAdd = 0				rename.IQFullEvents = 20,770,005	rename.ROBFullEvents = 25,822,940
+
+
+fu_full::FloatAdd = 48981903 <- This is alarge value. The reason for this is that we can issue 8 instructions in one clock cycles. Although not necessarily that every clock cycle
+all the 8 instructions will be FloatAdd class of instr, but there will be numerous such occurrences since we are simulating a billion instructions.
+The fu_full::FloatAdd numbers go down after doubling the number of Float ALU and Float MUL DIV units. And we can see that the rename.IQFullEvents has also reduced. IQ gets only the INT
+and Float Class of instructions hence the reduction in IQFullEvents is a direct impact of increase in Float Units.
+From this we can conclude that changing the number of Floating Execution Units isn't beneficial. Although the rename stage benefits from reduced number of stalls from IQ getting Full,
+but the returns are not large enough.
+
+6) ROB entries
+Config = 8_64_64_128_64
+IPC = 0.930320
+decode.BlockedCycles = 892,357,964
+
+
+Config = 8_64_64_128_128
+IPC = 1.202154
+decode.BlockedCycles = 559,507,538
+
+
+Config = 8_64_64_128_192
+IPC = 1.282939
+decode.BlockedCycles = 490,868,428

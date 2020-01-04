@@ -1,0 +1,24 @@
+1)
+Only with the Configuration of OOO Width >=7 , the INT FU becomes a bottleneck. Hence, for all the configurations
+with OOO Width<7 , there will be no change in the performance with any increase in INT ALU units.
+We ran simulations by increasing the INT ALU unit number on configurations with OOO Width < 7. We observed no improvements
+in IPC, which confirm our analysis.
+
+Config = 4_16_16_64_64
+system.cpu.iq.FU_type_0::IntAlu               4734952     77.69%     78.46% # Type of FU issued
+system.cpu.iq.FU_type_0::FloatAdd                4471      0.07%     79.11% # Type of FU issued
+
+Config = 8_64_64_128_192
+system.cpu.iq.FU_type_0::IntAlu               5452172     77.87%     78.75% # Type of FU issued
+system.cpu.iq.FU_type_0::FloatAdd                5129      0.07%     79.32% # Type of FU issued
+
+=====================================================================
+RUN: 6 64 64 128 192
+=====================================================================
+system.cpu.iq.fu_full::IntAlu 0
+=====================================================================
+RUN: 7 16 16 32 64
+=====================================================================
+system.cpu.iq.fu_full::IntAlu 16643
+
+The higher value of fu_full::IntAlu is because of a higher number in INT instructions in case of canneal.

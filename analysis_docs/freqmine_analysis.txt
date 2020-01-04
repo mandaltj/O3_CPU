@@ -1,0 +1,164 @@
+1)
+Config = 4_16_16_64_64
+system.cpu.iq.FU_type_0::IntAlu              59046173     79.43%     79.74% # Type of FU issued
+system.cpu.iq.FU_type_0::FloatAdd                 717      0.00%     79.83% # Type of FU issued
+system.cpu.iq.fu_full::IntAlu                       0                       # attempts to use FU when none available
+
+Config = 8_64_64_128_192
+system.cpu.iq.FU_type_0::IntAlu              65208078     79.76%     80.14% # Type of FU issued
+system.cpu.iq.FU_type_0::FloatAdd                 742      0.00%     80.22% # Type of FU issued
+system.cpu.iq.fu_full::IntAlu                  706713     83.40%     83.40% # attempts to use FU when none available
+
+2)
+=====================================================================
+RUN: 6 64 64 128 192
+=====================================================================
+0
+=====================================================================
+RUN: 7 16 16 32 64
+=====================================================================
+201390
+
+Only with the Configuration of OOO Width >=7 , the INT FU becomes a bottleneck. Hence, for all the configurations
+with OOO Width<7 , there will be no change in the performance with any increase in INT ALU units.
+We ran simulations by increasing the INT ALU unit number on configurations with OOO Width < 7. We observed no improvements
+in IPC, which confirm our analysis.
+
+3)
+INT_ALU INT_MULDIV FP_ALU FP_MULDIV LD_UNIT ST_UNIT
+2_2_2_2_4_4 IPC = 0.873919
+2_2_4_4_4_4 IPC = 0.873919
+No change in IPC with increase in FP Units. This confirms that the freqmine's low number of Floating Point instructions don't make use of the FP units much.
+
+Increasing the INT ALU and INT MULDIV units
+2_2_2_2_4_4 IPC = 0.873919	iewBlockCycles = 4836834	fu_full::IntAlu = 27418064 rename.BlockCycles = 7039284 	rename.ROBFullEvents = 113995
+3_3_2_2_4_4 IPC = 1.067267	iewBlockCycles = 3664858	fu_full::IntAlu = 17551874 rename.BlockCycles = 5876765 	rename.ROBFullEvents = 134131
+4_4_2_2_4_4 IPC = 1.138530	iewBlockCycles = 2925321	fu_full::IntAlu = 8986480  rename.BlockCycles = 4997229 	rename.ROBFullEvents = 124868
+5_5_2_2_4_4 IPC = 1.151219	iewBlockCycles = 2746183	fu_full::IntAlu = 3379156  rename.BlockCycles = 4793094 	rename.ROBFullEvents = 140712
+6_6_2_2_4_4 IPC = 1.154698	iewBlockCycles = 2698430	fu_full::IntAlu = 690584   rename.BlockCycles = 4754469 	rename.ROBFullEvents = 138003
+7_7_2_2_4_4 IPC = 1.152423	iewBlockCycles = 2717046	fu_full::IntAlu = 96105    rename.BlockCycles = 4773416 	rename.ROBFullEvents = 131129
+8_8_2_2_4_4 IPC = 1.153610	iewBlockCycles = 2713124	fu_full::IntAlu = 0        rename.BlockCycles = 4749419 	rename.ROBFullEvents = 128853
+
+The IPC increases till INT Units of 6. Beyond this the results aren't expected. We see a light drop in IPC. The expectation was that with the number of cycles that IntALU was becoming
+a bottleneck decreases to 0, the performance should keep impproving. But that only happened from 0 -> 6. The IPC calculated as ipc =  committedInsts / numCycles; depends on all the stages
+fetch, decode, rename, iew, commit. Hence, the interaction b/w the stages and the flow of instructions b/w them require further analysis to deduce the reason for the minor drop in IPC.
+Nevertheless, we can say that the improvement in IPC with increasing INT Units only makes sense upto 5-6 Units for the benchmark freqmine. Beyond this the returns diminish.
+
+4)
+
+Increasing LD Units
+2_2_2_2_1_2 IPC = 0.875264	fu_full::MemRead = 3898961	iewLSQFullEvents = 508036	LQFullEvents = 37357	 	rename.ROBFullEvents = 114139 	dcache.overall_miss_rate = 0.0169	decode.BlockedCycles = 19889389
+2_2_2_2_2_2 IPC = 0.877308	fu_full::MemRead = 684984	iewLSQFullEvents = 506682	LQFullEvents = (100-300) 	rename.ROBFullEvents = 114985	dcache.overall_miss_rate = 0.0168	decode.BlockedCycles = 19923789
+2_2_2_2_3_2 IPC = 0.875594	fu_full::MemRead = 238280	iewLSQFullEvents = 512979	LQFullEvents = (100-300) 	rename.ROBFullEvents = 114130	dcache.overall_miss_rate = 0.0167	decode.BlockedCycles = 19645784
+2_2_2_2_4_2 IPC = 0.877026	fu_full::MemRead = 137574	iewLSQFullEvents = 508360	LQFullEvents = (100-300) 	rename.ROBFullEvents = 114673	dcache.overall_miss_rate = 0.0168	decode.BlockedCycles = 19975089
+2_2_2_2_5_2 IPC = 0.877822	fu_full::MemRead = 79182	iewLSQFullEvents = 509231	LQFullEvents = (100-300) 	rename.ROBFullEvents = 114932	dcache.overall_miss_rate = 0.0168	decode.BlockedCycles = 19933968
+2_2_2_2_6_2 IPC = 0.877849	fu_full::MemRead = 1741		iewLSQFullEvents = 508899	LQFullEvents = (100-300) 	rename.ROBFullEvents = 115306	dcache.overall_miss_rate = 0.0168	decode.BlockedCycles = 19935407
+2_2_2_2_7_2 IPC = 0.878221	fu_full::MemRead = 711		iewLSQFullEvents = 510284	LQFullEvents = (100-300) 	rename.ROBFullEvents = 114920	dcache.overall_miss_rate = 0.0168	decode.BlockedCycles = 19930404
+2_2_2_2_8_2 IPC = 0.877994	fu_full::MemRead = 0		iewLSQFullEvents = 509622	LQFullEvents = (100-300) 	rename.ROBFullEvents = 115213	dcache.overall_miss_rate = 0.0168	decode.BlockedCycles = 19930215
+
+Increasing ST units
+2_2_2_2_2_1 IPC = 0.875848 	fu_full::MemRead = 815420	iewLSQFullEvents = 509533  	SQFullEvents = 4758098		rename.ROBFullEvents = 113115	dcache.overall_miss_rate = 0.0169	decode.BlockedCycles =
+2_2_2_2_2_2 IPC = 0.877308	fu_full::MemRead = 99206	iewLSQFullEvents = 506682	SQFullEvents = 4757749      rename.ROBFullEvents = 114985   dcache.overall_miss_rate = 0.0168	decode.BlockedCycles =
+2_2_2_2_2_3 IPC = 0.876103	fu_full::MemRead = 12921	iewLSQFullEvents = 507577	SQFullEvents = 4755781      rename.ROBFullEvents = 114336   dcache.overall_miss_rate = 0.0167	decode.BlockedCycles =
+2_2_2_2_2_4 IPC = 0.874136	fu_full::MemRead = 2521		iewLSQFullEvents = 511163	SQFullEvents = 4747387      rename.ROBFullEvents = 114518   dcache.overall_miss_rate = 0.0168	decode.BlockedCycles =
+2_2_2_2_2_5 IPC = 0.876271	fu_full::MemRead = 924		iewLSQFullEvents = 507064	SQFullEvents = 4756960      rename.ROBFullEvents = 114603   dcache.overall_miss_rate = 0.0168	decode.BlockedCycles =
+2_2_2_2_2_6 IPC = 0.876158	fu_full::MemRead = 107		iewLSQFullEvents = 507406	SQFullEvents = 4755356      rename.ROBFullEvents = 114209   dcache.overall_miss_rate = 0.0168	decode.BlockedCycles =
+2_2_2_2_2_7 IPC = 0.876253	fu_full::MemRead = 94		iewLSQFullEvents = 506344	SQFullEvents = 4758006      rename.ROBFullEvents = 114564   dcache.overall_miss_rate = 0.0168	decode.BlockedCycles =
+2_2_2_2_2_8 IPC = 0.876253	fu_full::MemRead = 0		iewLSQFullEvents = 506344	SQFullEvents = 4758004      rename.ROBFullEvents = 114564   dcache.overall_miss_rate = 0.0168	decode.BlockedCycles =
+
+One important fact we need to remember is that the reason for LQ and SQ getting full not only depends on the number of LD and ST units available but also on the cache hits and misses
+that the LD and ST instructions observe. We observe that the fu_full::MemRead and fu_full::MemWrite keeps decreasing with increasing number of LD and ST Units, but the rename.ROBFullEvents
+values hasn't been impacted much. One reason for this is the fact that the cache Miss statistics haven't changed at all. Hence, even though the LD/ST instr get their effective address
+calculated, they still stall because of cache misses or true dependencies.
+Another observation is that, as we have increased the LD/ST units, it has led to decrease in fu_full indicating that the LD/ST instructions are not blocked because of FU units. But
+if you check the decode.BlockCycles it hasn't changed at all. Decode stage will be blocked if the buffer to which the decoded instrucitons are being written into is getting full.
+So, this means that even though FUs for LD/ST processing are available, the LQ and SQ are not getting empty any faster. This proves that the LD/ST units are blocked primarily because
+of the true dependencies and the cache misses.
+
+
+DCACHE Size = 512KB(doubled) Assoc=8(doubled)
+2_2_2_2_8_2 IPC = 0.879420	rename.ROBFullEvents = 102670	dcache.overall_miss_rate = 0.0147
+2_2_2_2_2_8 IPC = 0.882346  rename.ROBFullEvents = 102385   dcache.overall_miss_rate = 0.0147
+
+In the above configuration we changed the DCAHCE configuration and increased its size. That resulted in reduced miss rate. When we change the miss rate, it only impacts the LD and ST
+instructions. And the improved cache hits leads to better rename.ROBFullEvents which in turn gives us better IPC. This experiment tells us that it is the cache misses which decide the
+impact of LD/ST instructions, much more, than the LD/ST Queues and number of LD and ST Units. The reduction in rename.ROBFullEvents is only because of the LD/ST instructions finishing
+execution faster because of better miss rate as compared to previous configuration.
+
+
+Increasing LD Units
+2_2_2_2_1_2 IPC = 0.875857	rename.ROBFullEvents = 104339 	dcache.overall_miss_rate = 0.0148
+2_2_2_2_2_2 IPC = 0.880048	rename.ROBFullEvents = 101597	dcache.overall_miss_rate = 0.0147
+2_2_2_2_3_2 IPC = 0.879885	rename.ROBFullEvents = 100929	dcache.overall_miss_rate = 0.0147
+2_2_2_2_4_2 IPC = 0.878192	rename.ROBFullEvents = 101604	dcache.overall_miss_rate = 0.0147
+2_2_2_2_5_2 IPC = 0.879396	rename.ROBFullEvents = 102615	dcache.overall_miss_rate = 0.0147
+2_2_2_2_6_2 IPC = 0.878895	rename.ROBFullEvents = 102840	dcache.overall_miss_rate = 0.0147
+2_2_2_2_7_2 IPC = 0.879505	rename.ROBFullEvents = 102671	dcache.overall_miss_rate = 0.0147
+2_2_2_2_8_2 IPC = 0.879420	rename.ROBFullEvents = 102670	dcache.overall_miss_rate = 0.0147
+
+Increasing ST units
+2_2_2_2_2_1 IPC = 0.881563 	rename.ROBFullEvents = 100923	dcache.overall_miss_rate = 0.0148
+2_2_2_2_2_2 IPC = 0.880048  rename.ROBFullEvents = 101597   dcache.overall_miss_rate = 0.0147
+2_2_2_2_2_3 IPC = 0.878042  rename.ROBFullEvents = 102338   dcache.overall_miss_rate = 0.0147
+2_2_2_2_2_4 IPC = 0.879105  rename.ROBFullEvents = 101323   dcache.overall_miss_rate = 0.0147
+2_2_2_2_2_5 IPC = 0.877612  rename.ROBFullEvents = 101337   dcache.overall_miss_rate = 0.0147
+2_2_2_2_2_6 IPC = 0.875641  rename.ROBFullEvents = 102055   dcache.overall_miss_rate = 0.0147
+2_2_2_2_2_7 IPC = 0.882346  rename.ROBFullEvents = 102385   dcache.overall_miss_rate = 0.0147
+2_2_2_2_2_8 IPC = 0.882346  rename.ROBFullEvents = 102385   dcache.overall_miss_rate = 0.0147
+
+I think we can say that increasing the LD and ST units doesn't make much of an impact interms of IPC improvement, because of the cache miss penalties blocking the LD and ST instructions.
+Rather better cache replacement policies or better cache configuration(size,assoc) can provide better improvements.
+
+4) Read Analysis
+decode.BlockedCycles doesn't change much indicating that although more LD instr can be dispatched, the LQ still fills up because of stalls from dependencies and cache misses.
+
+Config = 8_16_64_128_192
+system.cpu.ipc_total = 1.150195
+decode.BlockedCycles = 10,057,012
+
+Config = 8_32_64_128_192
+system.cpu.ipc_total = 1.153213
+decode.BlockedCycles = 9,810,848
+
+Config = 8_48_64_128_192
+system.cpu.ipc_total = 1.153070
+decode.BlockedCycles = 9,841,770
+
+Config = 8_64_64_128_192
+system.cpu.ipc_total = 1.154698
+decode.BlockedCycles = 9,839,284
+
+5) Store Analysis
+decode.BlockedCycles doesn't change much indicating that although more LD instr can be dispatched, the LQ still fills up because of stalls from dependencies and cache misses.
+
+Config = 8_64_16_128_192
+system.cpu.ipc_total = 1.124887
+decode.BlockedCycles = 11,358,591
+rename.BlockCycles = 4,848,976
+
+rename.SQFullEvents = 6,155,184
+rename.ROBFullEvents = 253,746
+
+Config = 8_64_32_128_192
+system.cpu.ipc_total = 1.144744
+decode.BlockedCycles = 10,164,018
+rename.BlockCycles = 4,909,277
+
+rename.SQFullEvents = 5,000,982
+rename.ROBFullEvents = 141,339
+
+Config = 8_64_48_128_192
+system.cpu.ipc_total = 1.150305
+decode.BlockedCycles = 9,936,890
+rename.BlockCycles = 4,740,832
+
+rename.SQFullEvents = 4,963,969
+rename.ROBFullEvents = 130,879
+
+Config = 8_64_64_128_192
+system.cpu.ipc_total = 1.154698
+decode.BlockedCycles = 9,839,284
+rename.BlockCycles = 4,754,469
+
+rename.SQFullEvents = 4,841,737
+rename.ROBFullEvents = 138,003

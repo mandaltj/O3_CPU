@@ -1,0 +1,61 @@
+1)
+Only with the Configuration of OOO Width >=7 , the INT FU becomes a bottleneck. Hence, for all the configurations
+with OOO Width<7 , there will be no change in the performance with any increase in INT ALU units.
+We ran simulations by increasing the INT ALU unit number on configurations with OOO Width < 7. We observed no improvements
+in IPC, which confirm our analysis.
+
+Config = 4_16_16_64_64
+system.cpu.iq.FU_type_0::IntAlu               1588005     58.92%     59.25% # Type of FU issued
+system.cpu.iq.FU_type_0::FloatAdd              152423      5.66%     65.08% # Type of FU issued
+
+Config = 8_64_64_128_192
+system.cpu.iq.FU_type_0::IntAlu               1738895     60.15%     60.53% # Type of FU issued
+system.cpu.iq.FU_type_0::FloatAdd              155419      5.38%     66.08% # Type of FU issued
+
+=====================================================================
+RUN: 6 64 64 128 192
+=====================================================================
+system.cpu.iq.fu_full::IntAlu 0
+=====================================================================
+RUN: 7 16 16 32 64
+=====================================================================
+system.cpu.iq.fu_full::IntAlu 4633
+
+The higher value of fu_full::IntAlu is because of a higher number in INT instructions in case of blackscholes.
+
+
+Only with the Configuration of OOO Width >=7 , the INT FU becomes a bottleneck. Hence, for all the configurations
+with OOO Width<7 , there will be no change in the performance with any increase in INT ALU units.
+We ran simulations by increasing the INT ALU unit number on configurations with OOO Width < 7. We observed no improvements
+in IPC, which confirm our analysis.
+
+3) INT_ALU INT_MULDIV FP_ALU FP_MULDIV LD_UNIT ST_UNIT
+
+2_2_2_2_2_2 IPC = 0.804209	system.cpu.iq.fu_full::FloatAdd = 21249	system.cpu.iew.iewBlockCycles = 96424	system.cpu.rename.IQFullEvents = 22439
+2_2_4_4_2_2 IPC = 0.804209	system.cpu.iq.fu_full::FloatAdd = 0		system.cpu.iew.iewBlockCycles = 96424	system.cpu.rename.IQFullEvents = 22439
+2_2_6_6_2_2 IPC = 0.804209	system.cpu.iq.fu_full::FloatAdd = 0		system.cpu.iew.iewBlockCycles = 96424	system.cpu.rename.IQFullEvents = 22439
+2_2_8_8_2_2 IPC = 0.804209	system.cpu.iq.fu_full::FloatAdd = 0		system.cpu.iew.iewBlockCycles = 96424	system.cpu.rename.IQFullEvents = 22439
+No change in IPC with increase in FP Units. The iewBlockCycles remain constant. The primary reason seems to be IQ getting FULL. We are not changing our IQ depth and hence it makes sense that the IQ FULL count
+remained same in all of the above configurations. We also experimented by doubling the IQ and ROB size, but in that scenario as well the increase in FP Units didn't provide any improvement in IPC.
+There can be two reasons:
+i) The number of FP instructions is a very small fraction of the total number of instructions. system.cpu.iq.FU_type_0::FloatAdd              154965      5.62%     63.10% # Type of FU issued. Only 5.62%.
+ii) Of these FP instructions around a certain percentage of instructions get blocked due to the FP ALU unit numbers. system.cpu.iq.fu_full::FloatAdd = 21249. We do observe that the number of cycles that
+Float Add is blocked is reduced to 0, but it is possible that then other instructions such as INT, LD and ST instr are the ones that fill up the space in the IQ and ROB.
+
+Increasing the INT ALU and INT MULDIV units
+2_2_2_2_2_2 IPC = 0.804209 	system.cpu.iq.fu_full::IntAlu = 631866	system.cpu.iew.iewBlockCycles = 96424
+3_3_2_2_2_2 IPC = 0.843554 	system.cpu.iq.fu_full::IntAlu = 301023	system.cpu.iew.iewBlockCycles = 70946
+4_4_2_2_2_2 IPC = 0.869168 	system.cpu.iq.fu_full::IntAlu = 138908	system.cpu.iew.iewBlockCycles = 59739
+5_5_2_2_2_2 IPC = 0.865394 	system.cpu.iq.fu_full::IntAlu = 55590	system.cpu.iew.iewBlockCycles = 58271
+6_6_2_2_2_2 IPC = 0.874994 	system.cpu.iq.fu_full::IntAlu = 16242	system.cpu.iew.iewBlockCycles = 58433
+7_7_2_2_2_2 IPC = 0.856992 	system.cpu.iq.fu_full::IntAlu = 4521	system.cpu.iew.iewBlockCycles = 61115
+8_8_2_2_2_2 IPC = 0.859759 	system.cpu.iq.fu_full::IntAlu = 0		system.cpu.iew.iewBlockCycles = 61115
+
+4)
+Not doing LD ST analysis for blackscholes.
+
+5) Floating Point analysis
+2_2_2_2_2_2 IPC = 0.804209 	iq.FU_type_0::FloatAdd = 154835		fu_full::FloatAdd = 21249	iewBlockCycles = 96424 	rename.BlockCycles = 171629
+2_2_4_4_2_2 IPC = 0.804209  iq.FU_type_0::FloatAdd = 155199		fu_full::FloatAdd = 0		iewBlockCycles = 96424	rename.BlockCycles = 171629
+2_2_6_6_2_2 IPC = 0.804209  iq.FU_type_0::FloatAdd = 155199		fu_full::FloatAdd = 0		iewBlockCycles = 96424	rename.BlockCycles = 171629
+2_2_8_8_2_2 IPC = 0.804209  iq.FU_type_0::FloatAdd = 155199		fu_full::FloatAdd = 0		iewBlockCycles = 96424	rename.BlockCycles = 171629
